@@ -1,0 +1,60 @@
+import time
+import usb.core
+import usb.util
+import usb.backend.libusb1
+import sys
+back = usb.backend.libusb1.get_backend(find_library=lambda x: "D:\\User\\ajayanthi\\Desktop\\libusb-1.0.dll")
+
+dev = usb.core.find(find_all=True, backend = back)
+li = list(dev)
+#sys.stdout.write('There are ' + str(len(list(dev))) + ' in the system\n.')
+
+
+# cfg1 = li[1]
+# print(cfg1)
+# #intf = cfg[(0,0)]
+# #print(intf)
+# ep = intf[2]
+# print(ep)
+# alt = usb.util.find_descriptor(cfg1, find_all=True, bInterfaceNumber=1)
+# print(alt)
+
+# for cfg in li:
+#    # bDeviceClass
+#     sys.stdout.write(str(cfg.bDeviceClass) + '\n')
+#     #sys.stdout.write(str(cfg.bConfigurationValue) + '\n')
+    
+def EnumerateUSB():    # function that scans all known USB connections and saves their info in the file
+    with open("D:\\User\\ajayanthi\\Desktop\\2106_EnumerateUSBLog.txt", "w") as wf:
+        counter = 0
+        for d in li:
+            try:
+                wf.write("checking " + (d.manufacturer))
+                wf.write("USB Device number " + str(counter) + ":" + "\n")
+                wf.write(d._get_full_descriptor_str() + "\n")
+                wf.write(d.get_active_configuration() + "\n")
+                wf.write(d.bDeviceClass + "\n")
+                wf.write(d.bConfigurationValue + '\n')
+                #wf.write("checking " + print(d.manufacturer))
+                for intf in d:
+                    wf.write('\t' + \
+                         str(intf.bInterfaceNumber) + \
+                         ',' + \
+                         str(intf.bAlternateSetting) + \
+                         '\n')
+                    for ep in intf:
+                        wf.write('\t\t' + \
+                             str(ep.bEndpointAddress) + \
+                             '\n')
+                counter += 1
+            except NotImplementedError:
+                wf.write("Device number " + str(counter) + " is busy." + "\n")
+                wf.write("\n")
+                counter += 1
+            except usb.core.USBError:
+                wf.write("Device number " + str(counter) + " is either disconnected or not found." + "\n")
+                wf.write("\n")
+                counter += 1
+        wf.close()
+
+EnumerateUSB()
